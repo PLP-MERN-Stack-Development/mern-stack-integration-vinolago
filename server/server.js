@@ -7,10 +7,10 @@ const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 const setupMiddleware = require('./middleware/setupMiddleware');
 
-/* Import routes
+// Import routes
 const postRoutes = require('./routes/posts');
 const categoryRoutes = require('./routes/categories');
-const authRoutes = require('./routes/auth'); */
+const authRoutes = require('./routes/auth.js'); 
 
 // Load environment variables
 dotenv.config();
@@ -26,10 +26,10 @@ const PORT = process.env.PORT || 5000;
 setupMiddleware(app);
 
 
-/* API routes
+// API routes
 app.use('/api/posts', postRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/auth', authRoutes); */
+app.use('/api/auth', authRoutes); 
 
 // Root route
 app.get('/', (req, res) => {
