@@ -6,14 +6,18 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const { connectDB } = require('./config/db');
 
-// Import routes
+/* Import routes
 const postRoutes = require('./routes/posts');
 const categoryRoutes = require('./routes/categories');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth'); */
 
 // Load environment variables
 dotenv.config();
+
+// Conncect to MongoDB
+connectDB();
 
 // Initialize Express app
 const app = express();
@@ -35,10 +39,10 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// API routes
+/* API routes
 app.use('/api/posts', postRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes); */
 
 // Root route
 app.get('/', (req, res) => {
@@ -54,7 +58,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB and start server
+/*Connect to MongoDB and start server
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
@@ -66,7 +70,12 @@ mongoose
   .catch((err) => {
     console.error('Failed to connect to MongoDB', err);
     process.exit(1);
-  });
+  }); */
+
+// Start the server
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
