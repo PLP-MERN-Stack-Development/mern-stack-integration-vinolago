@@ -2,10 +2,8 @@ const express = require('express');
 const Post = require('../models/Post');
 const router = express.Router();
 
-import { verifyToken } from "../middleware/verifyToken.js";
-import { authorizeRole } from "../middleware/authRole.js";
-
-router.delete("/:id", verifyToken, authorizeRole("admin"), deletePost);
+const { protect } = require('../middleware/authMiddleware');
+const authorizeRole = require('../middleware/authRole');
 
 
 // GET /api/posts - Get/list all posts
@@ -143,12 +141,12 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/posts/:id - Delete a blog post by ID
-router.delete('/:id', async (req, res) => {
+// DELETE /api/posts/:id - Delete a blog post by ID (protected: admin only)
+router.delete('/:id', protect, authorizeRole('admin'), async (req, res) => {
     try {
         const postId = req.params.id;
 
-        const deletedPost = await Post.findByIdAndDelete(postId);
+        const deletedPost = await Post.findById(postId);
 
         if (!deletedPost) {
             return res.status(404).json({

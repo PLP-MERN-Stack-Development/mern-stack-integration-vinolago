@@ -40,9 +40,9 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
-// Sign JWT and return
+// Sign JWT and return (include id, role, email)
 UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role, email: this.email }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
 };

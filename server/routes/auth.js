@@ -2,22 +2,16 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
+const jwt = require('jsonwebtoken');
 
-// Generate JWT
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" } // token validity
-  );
-};
+// Note: this file uses the User model's instance method getSignedJwtToken() to create tokens.
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -25,10 +19,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email already registered' });
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, role: role || 'user' });
     const token = user.getSignedJwtToken();
 
-    res.status(201).json({ success: true, token, user: { id: user._id, name, email } });
+    res.status(201).json({ success: true, token, user: { id: user._id, name, email, role: user.role } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server Error', error: err.message });
   }

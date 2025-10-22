@@ -1,3 +1,5 @@
+// If you want to protect any category routes, use:
+// const { protect } = require('../middleware/authMiddleware');
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
