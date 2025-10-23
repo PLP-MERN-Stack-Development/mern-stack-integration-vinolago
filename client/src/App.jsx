@@ -1,30 +1,39 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import PostPage from "./pages/PostPage";
-import Login from "./pages/Login";
+import React from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import Posts from "./pages/Posts";
+import PostDetail from "./pages/PostDetail";
+import PostForm from "./pages/PostForm";
+import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import CreatePost from "./pages/CreatePost";
-import EditPost from "./pages/EditPost";
-import LayoutWrapper from "./components/layout/LayoutWrapper";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Login from "./pages/Login";
 
-function App() {
-  return (
-    <Router>
-      <LayoutWrapper>
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/post/:slug" element={<PostPage />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/posts" element={<Posts />} />
+          <Route path="/posts/new" element={<PostForm />} />
+          <Route path="/posts/:id" element={<PostDetail />} />
+          <Route path="/posts/:id/edit" element={<PostForm />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/posts/edit/:id" element={<EditPost />} />
-          <Route path="/dashboard/posts/new" element={<CreatePost />} />
+          <Route path="/login" element={<Login  />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </LayoutWrapper>
-    </Router>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

@@ -3,7 +3,7 @@ import { useState } from "react";
 import PostGrid from "../components/ui/PostGrid";
 import SearchBar from "../components/ui/SearchBar";
 import CategoryBadge from "../components/ui/CategoryBadge";
-import Pagination from "../components/ui/Pagination";
+import Pagination from "../components/ui/pagination";
 
 const CATEGORIES = [
   { id: "", label: "All" },
