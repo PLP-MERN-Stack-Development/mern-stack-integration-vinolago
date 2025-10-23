@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext";
+import { authService } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,19 +21,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
 // ✅ Validation schema using Zod
-const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters long"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-  confirmPassword: z.string().min(6, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    confirmPassword: z.string().min(6, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export default function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
@@ -42,30 +49,22 @@ export default function RegisterForm() {
     },
   });
 
-  // ✅ Handle registration submit
+  // ✅ Handle registration with authService
   const onSubmit = async (values) => {
     setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          password: values.password,
-        }),
+      const data = await authService.register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Registration failed");
-
-      // Store token or redirect
-      localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
+      setUser(data.user); // Update global auth state
+      navigate("/dashboard"); // Redirect on success
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || "Registration failed. Try again.");
     } finally {
       setLoading(false);
     }

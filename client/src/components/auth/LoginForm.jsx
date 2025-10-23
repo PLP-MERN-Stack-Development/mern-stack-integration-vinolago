@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext";
+import { authService } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
@@ -19,6 +29,8 @@ const loginSchema = z.object({
 export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -28,28 +40,17 @@ export default function LoginForm() {
     },
   });
 
-  // ✅ Handle form submission
+  // ✅ Handle form submission using authService
   const onSubmit = async (values) => {
     setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Login failed");
-
-      // Save token to localStorage
-      localStorage.setItem("token", data.token);
-
-      // Redirect or refresh
-      window.location.href = "/dashboard";
+      const data = await authService.login(values); // uses axios instance
+      setUser(data.user); // update global auth context
+      navigate("/dashboard"); // redirect after login
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
