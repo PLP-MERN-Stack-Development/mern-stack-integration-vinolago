@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Calendar, User } from "lucide-react";
+import api from "@/api/axios";
 
 // Mock data - will be replaced with API calls
 const mockPosts = [
@@ -50,20 +51,68 @@ const mockPosts = [
   },
 ];
 
-const categories = ["All", "React", "Backend", "CSS", "Database", "JavaScript"];
+const cats = ["All", "React", "Backend", "CSS", "Database", "JavaScript"];
 
 const Posts = () => {
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-  const filteredPosts = mockPosts.filter((post) => {
+  useEffect(() => {
+  const fetchPosts = async () => {
+      try {
+        setLoading(true);
+
+        //Get all posts + category
+        const postResults = await api.get("/posts");
+        const catResults = await api.get("/categories");
+
+        if (postResults.data.success) {
+          setPosts(postResults.data.data);
+        }
+
+        if (catResults.data.success) {
+          setCategories(catResults.data.data)
+        }
+      } catch (error) {
+        console.error("Error fetching posts: ", error)
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPosts();
+  }, []);
+
+ // Filter posts by search + category
+  const filteredPosts = posts.filter((post) => {
+    const titleMatch = post.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const excerptMatch = post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = titleMatch || excerptMatch;
+
+    const categoryName = post.category?.name || "";
+    const matchesCategory =
+      selectedCategory === "All" || categoryName === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+/*
+  const filteredPosts = posts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
-
+  }); */
+  if (loading) {
+  return (
+      <div className="flex justify-center items-center min-h-screen text-muted-foreground">
+        Loading posts...
+      </div>
+    );
+}
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -89,7 +138,7 @@ const Posts = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="mb-12 text-center">
-          <h1 className="mb-4 text-5xl font-bold tracking-tight">Welcome to DevBlog</h1>
+          <h1 className="mb-4 text-5xl font-bold tracking-tight">Welcome to Dev Blog</h1>
           <p className="text-xl text-muted-foreground">
             Discover articles about web development, design, and technology
           </p>
@@ -130,7 +179,7 @@ const Posts = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPosts.map((post) => (
-              <Link key={post.id} to={`/posts/${post.id}`}>
+              <Link key={post._id} to={`/posts/${post._id}`}>
                 <Card className="h-full transition-smooth hover:-translate-y-1 hover:shadow-lg">
                   <CardHeader>
                     <div className="mb-2 flex items-center justify-between">
