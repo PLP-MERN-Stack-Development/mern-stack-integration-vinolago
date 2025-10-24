@@ -4,6 +4,7 @@ const router = express.Router();
 
 const { protect } = require('../middleware/authMiddleware');
 const authorizeRole = require('../middleware/authRole');
+const fakeAuth = require('../middleware/fakeAuth');
 
 
 // GET /api/posts - Get/list all posts
@@ -80,15 +81,18 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST /api/posts - Create a new blog post
-router.post('/', async (req, res) => {
+// POST /api/posts/ - Create a new blog post
+router.post('/', fakeAuth, async (req, res) => {
     try {
         const { title, content, author, category, featuredImage, excerpt, tags, isPublished } = req.body;
+
+        // Use authenticated user ID if available, otherwise use provided author
+        const authorId = req.user ? req.user._id : author;
 
         const newPost = new Post({
             title,
             content,
-            author,
+            author: authorId,
             category,
             featuredImage,
             excerpt,
@@ -111,12 +115,17 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/posts/:id - Update an existing blog post by ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', fakeAuth, async (req, res) => {
     try {
         const postId = req.params.id;
         const updateData = req.body;
 
-        const updatedPost = await Post.findByIdAndUpdate(postId, updatedData, {
+        // Use authenticated user ID if available
+        if (req.user) {
+            updateData.author = req.user._id;
+        }
+
+        const updatedPost = await Post.findByIdAndUpdate(postId, updateData, {
             new: true,
             runValidators: true,
         });

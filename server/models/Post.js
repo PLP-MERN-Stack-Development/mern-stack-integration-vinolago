@@ -20,17 +20,16 @@ const PostSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
       unique: true,
     },
     excerpt: {
       type: String,
+      required: true,
       maxlength: [200, 'Excerpt cannot be more than 200 characters'],
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,

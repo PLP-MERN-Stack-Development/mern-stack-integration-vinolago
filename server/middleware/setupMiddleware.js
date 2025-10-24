@@ -8,7 +8,12 @@ const errorHandler = require('./errorHandler');
 
 const setupMiddleware = (app) => {
     // core middleware
-    app.use(cors());
+    app.use(cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    })
+    );
+
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 

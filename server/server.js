@@ -1,6 +1,6 @@
 // server.js - Main server file for the MERN blog application
 
-// server.js - Exports the Express app (no DB connect or listen)
+//  - Exports the Express app (no DB connect or listen)
 const express = require('express');
 const setupMiddleware = require('./middleware/setupMiddleware');
 
