@@ -96,19 +96,6 @@ export default function Register() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <select
-                id="role"
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="w-full border rounded-md p-2 bg-background text-foreground"
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
 
             <Button type="submit" className="w-full mt-2" disabled={loading}>
               {loading ? "Creating Account..." : "Register"}

@@ -8,7 +8,7 @@ import { Search, Plus, Calendar, User } from "lucide-react";
 import api from "@/api/axios";
 
 // Mock data - will be replaced with API calls
-const mockPosts = [
+/*const mockPosts = [
   {
     id: "1",
     title: "Getting Started with React and TypeScript",
@@ -30,28 +30,9 @@ const mockPosts = [
     readTime: "8 min read",
   },
   {
-    id: "3",
-    title: "Mastering CSS Grid and Flexbox",
-    excerpt:
-      "A comprehensive guide to modern CSS layout techniques that will help you build responsive designs with ease.",
-    author: "Emma Watson",
-    date: "2025-10-15",
-    category: "CSS",
-    readTime: "6 min read",
-  },
-  {
-    id: "4",
-    title: "Database Design Patterns for Scalability",
-    excerpt:
-      "Understanding common database design patterns and when to use them for building scalable applications.",
-    author: "David Park",
-    date: "2025-10-12",
-    category: "Database",
-    readTime: "10 min read",
-  },
-];
+    
 
-const cats = ["All", "React", "Backend", "CSS", "Database", "JavaScript"];
+const cats = ["All", "React", "Backend", "CSS", "Database", "JavaScript"]; */
 
 const Posts = () => {
   const [posts, setPosts] = useState([]);
@@ -59,29 +40,42 @@ const Posts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-  const fetchPosts = async () => {
+    const fetchPosts = async () => {
       try {
         setLoading(true);
 
-        //Get all posts + category
+        // Get all posts + categories
         const postResults = await api.get("/posts");
         const catResults = await api.get("/categories");
 
         if (postResults.data.success) {
+          console.log('Posts loaded:', postResults.data.data);
           setPosts(postResults.data.data);
+        } else {
+          console.error('Failed to load posts:', postResults.data);
         }
 
         if (catResults.data.success) {
-          setCategories(catResults.data.data)
+          // Add "All" option and map category names
+          const categoryNames = ["All", ...catResults.data.data.map(cat => cat.name)];
+          console.log('Categories loaded:', categoryNames);
+          setCategories(categoryNames);
+        } else {
+          console.error('Failed to load categories:', catResults.data);
         }
       } catch (error) {
-        console.error("Error fetching posts: ", error)
+        console.error("Error fetching posts: ", error);
+        setError("Failed to load posts. Please try again.");
+        // Set empty arrays on error
+        setPosts([]);
+        setCategories(["All"]);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchPosts();
   }, []);
@@ -107,12 +101,28 @@ const Posts = () => {
     return matchesSearch && matchesCategory;
   }); */
   if (loading) {
-  return (
+    return (
       <div className="flex justify-center items-center min-h-screen text-muted-foreground">
-        Loading posts...
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          Loading posts...
+        </div>
       </div>
     );
-}
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -174,7 +184,17 @@ const Posts = () => {
         {/* Posts Grid */}
         {filteredPosts.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-lg text-muted-foreground">No posts found matching your criteria.</p>
+            <p className="text-lg text-muted-foreground">
+              {posts.length === 0 
+                ? "No posts available. Create your first post!" 
+                : "No posts found matching your criteria."
+              }
+            </p>
+            {posts.length === 0 && (
+              <Button asChild className="mt-4">
+                <Link to="/posts/new">Create First Post</Link>
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -183,8 +203,10 @@ const Posts = () => {
                 <Card className="h-full transition-smooth hover:-translate-y-1 hover:shadow-lg">
                   <CardHeader>
                     <div className="mb-2 flex items-center justify-between">
-                      <Badge variant="secondary">{post.category}</Badge>
-                      <span className="text-sm text-muted-foreground">{post.readTime}</span>
+                      <Badge variant="secondary">{post.category?.name || 'Uncategorized'}</Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {Math.ceil(post.content?.length / 200) || 5} min read
+                      </span>
                     </div>
                     <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                     <CardDescription className="line-clamp-3">{post.excerpt}</CardDescription>
@@ -193,11 +215,11 @@ const Posts = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        {post.author}
+                        {post.author?.name || 'Unknown Author'}
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {new Date(post.date).toLocaleDateString("en-US", {
+                        {new Date(post.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
